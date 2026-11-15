@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 
 /// Describes one launchable application and its Need policies.
 class ManagedAppModel {
@@ -10,6 +11,7 @@ class ManagedAppModel {
     required this.name,
     required this.packageName,
     required this.icon,
+    this.iconBytes,
     this.isLocked = false,
     this.isNotifMasked = false,
   });
@@ -23,6 +25,9 @@ class ManagedAppModel {
   /// Material fallback icon used when Android does not provide an asset.
   final IconData icon;
 
+  /// PNG bytes for the Android launcher icon, when available.
+  final Uint8List? iconBytes;
+
   /// Whether launching this application requires authentication.
   final bool isLocked;
 
@@ -35,6 +40,9 @@ class ManagedAppModel {
       name: map['name'] as String? ?? map['packageName'] as String? ?? 'App',
       packageName: map['packageName'] as String? ?? '',
       icon: Icons.apps_rounded,
+      iconBytes: map['iconBytes'] is Uint8List
+          ? map['iconBytes'] as Uint8List
+          : null,
     );
   }
 
@@ -44,6 +52,7 @@ class ManagedAppModel {
       name: name,
       packageName: packageName,
       icon: icon,
+      iconBytes: iconBytes,
       isLocked: isLocked ?? this.isLocked,
       isNotifMasked: isNotifMasked ?? this.isNotifMasked,
     );

@@ -30,7 +30,20 @@ class AppLockTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: CircleAvatar(child: Icon(app.icon)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        minVerticalPadding: 8,
+        minTileHeight: 72,
+        leading: app.iconBytes == null
+            ? CircleAvatar(child: Icon(app.icon))
+            : ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.memory(
+                  app.iconBytes!,
+                  width: 42,
+                  height: 42,
+                  fit: BoxFit.cover,
+                ),
+              ),
         title: Text(app.name, maxLines: 1, overflow: TextOverflow.ellipsis),
         subtitle: Text(
           app.packageName,
@@ -40,7 +53,8 @@ class AppLockTile extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
+            IconButton.filledTonal(
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               tooltip: app.isNotifMasked
                   ? 'Disable notification masking'
                   : 'Enable notification masking',

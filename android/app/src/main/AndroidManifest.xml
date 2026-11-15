@@ -13,8 +13,8 @@
             android:name=".ui.LockActivity"
             android:exported="false"
             android:excludeFromRecents="true"
-            android:noHistory="false"
-            android:theme="@style/LockTheme" />
+            android:launchMode="singleInstance"
+            android:theme="@style/Theme.Need.LockScreen" />
 
         <activity
             android:name=".MainActivity"

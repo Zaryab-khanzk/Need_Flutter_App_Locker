@@ -14,6 +14,7 @@ class PermissionStatus {
     required this.notificationAccess,
     required this.overlay,
     required this.accessibility,
+    required this.postNotifications,
   });
 
   /// Whether Usage Access is granted.
@@ -28,6 +29,9 @@ class PermissionStatus {
   /// Whether the accessibility service is enabled.
   final bool accessibility;
 
+  /// Whether Need may post sanitized replacement notifications.
+  final bool postNotifications;
+
   /// Creates a status from the map returned by Android.
   factory PermissionStatus.fromMap(Map<Object?, Object?> map) {
     bool read(String key) => map[key] == true;
@@ -36,6 +40,7 @@ class PermissionStatus {
       notificationAccess: read('notificationAccess'),
       overlay: read('overlay'),
       accessibility: read('accessibility'),
+      postNotifications: read('postNotifications'),
     );
   }
 }
@@ -88,6 +93,10 @@ class NativeBridgeService {
   /// Opens the Android settings page for accessibility access.
   Future<void> openAccessibilitySettings() =>
       _invokeSettings(PlatformChannels.openAccessibilitySettings);
+
+  /// Requests the Android 13+ notification posting permission.
+  Future<void> requestNotificationPermission() =>
+      _invokeSettings(PlatformChannels.requestNotificationPermission);
 
   Future<void> _invokeSettings(String method) async {
     await _channel.invokeMethod<void>(method);

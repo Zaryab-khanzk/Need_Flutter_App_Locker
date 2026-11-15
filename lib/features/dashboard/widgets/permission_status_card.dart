@@ -14,6 +14,7 @@ class PermissionStatusCard extends StatelessWidget {
     required this.onOpenNotificationAccess,
     required this.onOpenOverlay,
     required this.onOpenAccessibility,
+    required this.onRequestNotificationPermission,
     super.key,
   });
 
@@ -31,6 +32,9 @@ class PermissionStatusCard extends StatelessWidget {
 
   /// Opens accessibility settings.
   final VoidCallback onOpenAccessibility;
+
+  /// Requests notification posting access.
+  final VoidCallback onRequestNotificationPermission;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +58,11 @@ class PermissionStatusCard extends StatelessWidget {
         label: 'Accessibility service',
         granted: status?.accessibility ?? false,
         action: onOpenAccessibility,
+      ),
+      (
+        label: 'Post notifications',
+        granted: status?.postNotifications ?? false,
+        action: onRequestNotificationPermission,
       ),
     ];
     final allGranted =
@@ -87,9 +96,12 @@ class PermissionStatusCard extends StatelessWidget {
                 title: Text(entry.label),
                 trailing: entry.granted
                     ? const Text('Granted')
-                    : TextButton(
+                    : FilledButton.tonal(
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(110, 44),
+                        ),
                         onPressed: entry.action,
-                        child: const Text('Open settings'),
+                        child: const Text('Grant access'),
                       ),
               ),
             ),

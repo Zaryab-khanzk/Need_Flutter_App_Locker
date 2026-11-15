@@ -7,6 +7,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
 import com.zaryab.need.services.AppLockAccessibilityService
@@ -43,6 +45,7 @@ class SettingsMethodHandler(
                 result,
                 Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS),
             )
+            REQUEST_NOTIFICATION_PERMISSION -> requestNotificationPermission(result)
             else -> result.notImplemented()
         }
     }
@@ -61,6 +64,7 @@ class SettingsMethodHandler(
                 mapOf(
                     "name" to it.loadLabel(context.packageManager).toString(),
                     "packageName" to it.packageName,
+                    "iconBytes" to drawableToPng(it.loadIcon(context.packageManager)),
                 )
             }
             .toList()
@@ -71,7 +75,52 @@ class SettingsMethodHandler(
         "notificationAccess" to hasNotificationAccess(),
         "overlay" to Settings.canDrawOverlays(context),
         "accessibility" to hasAccessibilityAccess(),
+        "postNotifications" to hasPostNotificationsPermission(),
     )
+
+    private fun hasPostNotificationsPermission(): Boolean {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            context.checkSelfPermission(
+                android.Manifest.permission.POST_NOTIFICATIONS,
+            ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestNotificationPermission(result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            context.checkSelfPermission(
+                android.Manifest.permission.POST_NOTIFICATIONS,
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            result.success(null)
+            return
+        }
+        if (context !is android.app.Activity) {
+            result.error(
+                "permission_unavailable",
+                "Notification permission requires an active Need activity.",
+                null,
+            )
+            return
+        }
+        context.requestPermissions(
+            arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+            NOTIFICATION_PERMISSION_REQUEST_CODE,
+        )
+        result.success(null)
+    }
+
+    private fun drawableToPng(drawable: android.graphics.drawable.Drawable): ByteArray {
+        val size = 96
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, size, size)
+        drawable.draw(canvas)
+        return java.io.ByteArrayOutputStream().use { output ->
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)
+            bitmap.recycle()
+            output.toByteArray()
+        }
+    }
 
     private fun hasUsageAccess(): Boolean {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
@@ -136,5 +185,8 @@ class SettingsMethodHandler(
         private const val OPEN_NOTIFICATION_ACCESS = "openNotificationAccessSettings"
         private const val OPEN_OVERLAY = "openOverlaySettings"
         private const val OPEN_ACCESSIBILITY = "openAccessibilitySettings"
+        private const val REQUEST_NOTIFICATION_PERMISSION =
+            "requestNotificationPermission"
+        private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
     }
 }

@@ -21,4 +21,7 @@ abstract final class PlatformChannels {
 
   /// Opens Android accessibility settings.
   static const openAccessibilitySettings = 'openAccessibilitySettings';
+
+  /// Requests the Android runtime notification permission.
+  static const requestNotificationPermission = 'requestNotificationPermission';
 }

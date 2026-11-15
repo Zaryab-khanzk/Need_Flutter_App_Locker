@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/services/native_bridge_service.dart';
+import '../../../core/constants/app_constants.dart';
 import '../providers/app_locker_controller.dart';
 import '../widgets/app_lock_tile.dart';
 import '../widgets/permission_status_card.dart';
@@ -62,6 +63,8 @@ class DashboardScreen extends StatelessWidget {
                       context,
                       (bridge) => bridge.openAccessibilitySettings(),
                     ),
+                    onRequestNotificationPermission: () =>
+                        _requestNotificationPermission(context),
                   ),
                   const SizedBox(height: 20),
                   TextField(
@@ -128,12 +131,27 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Future<void> _openDeveloperLink(BuildContext context) async {
-    final uri = Uri.parse('https://dev-zaryab.vercel.app/');
+    final uri = Uri.parse(kDeveloperPortfolioUrl);
     if (await launchUrl(uri, mode: LaunchMode.externalApplication)) return;
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Unable to open developer website.')),
       );
+    }
+  }
+
+  Future<void> _requestNotificationPermission(BuildContext context) async {
+    try {
+      await context.read<NativeBridgeService>().requestNotificationPermission();
+      if (context.mounted) {
+        await context.read<AppLockerController>().refreshPermissions();
+      }
+    } on PlatformException catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message ?? 'Unable to request access.')),
+        );
+      }
     }
   }
 }

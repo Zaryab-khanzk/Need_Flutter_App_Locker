@@ -10,6 +10,8 @@ class StorageService {
 
   static const _lockedPackagesKey = 'locked_packages';
   static const _maskedPackagesKey = 'masked_packages';
+  static const _lockedPackagesCsvKey = 'locked_packages_csv';
+  static const _maskedPackagesCsvKey = 'masked_packages_csv';
   SharedPreferences? _preferences;
 
   Future<SharedPreferences> get _instance async =>
@@ -23,16 +25,21 @@ class StorageService {
 
   /// Persists whether [packageName] is protected.
   Future<void> setLocked(String packageName, bool value) =>
-      _setValue(_lockedPackagesKey, packageName, value);
+      _setValue(_lockedPackagesKey, _lockedPackagesCsvKey, packageName, value);
 
   /// Persists whether notifications for [packageName] are masked.
   Future<void> setMasked(String packageName, bool value) =>
-      _setValue(_maskedPackagesKey, packageName, value);
+      _setValue(_maskedPackagesKey, _maskedPackagesCsvKey, packageName, value);
 
   Future<Set<String>> _readSet(String key) async =>
       (await _instance).getStringList(key)?.toSet() ?? <String>{};
 
-  Future<void> _setValue(String key, String packageName, bool value) async {
+  Future<void> _setValue(
+    String key,
+    String csvKey,
+    String packageName,
+    bool value,
+  ) async {
     final preferences = await _instance;
     final values = preferences.getStringList(key)?.toSet() ?? <String>{};
     if (value) {
@@ -40,6 +47,8 @@ class StorageService {
     } else {
       values.remove(packageName);
     }
-    await preferences.setStringList(key, values.toList()..sort());
+    final sortedValues = values.toList()..sort();
+    await preferences.setStringList(key, sortedValues);
+    await preferences.setString(csvKey, sortedValues.join(','));
   }
 }
