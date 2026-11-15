@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Need</string>
+    <string name="accessibility_service_label">Need app protection</string>
+    <string name="accessibility_service_description">Detects foreground apps to show the Need lock screen.</string>
+    <string name="notification_listener_label">Need notification privacy</string>
+    <string name="lock_prompt_title">Unlock app</string>
+    <string name="lock_prompt_subtitle">Use your Pixel security credentials to continue.</string>
+    <string name="masked_notification_channel">Masked notifications</string>
+    <string name="masked_notification_channel_description">Sanitized notifications from protected apps.</string>
+</resources>
