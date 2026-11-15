@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/services/native_bridge_service.dart';
 import '../providers/app_locker_controller.dart';
@@ -31,60 +32,76 @@ class DashboardScreen extends StatelessWidget {
       ),
       body: RefreshIndicator(
         onRefresh: controller.initialize,
-        child: ListView(
+        child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-          children: [
-            Text(
-              'App privacy, under your control.',
-              style: Theme.of(context).textTheme.headlineSmall,
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  Text(
+                    'App privacy, under your control.',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 16),
+                  PermissionStatusCard(
+                    status: controller.permissionStatus,
+                    onOpenUsageAccess: () => _openSettings(
+                      context,
+                      (bridge) => bridge.openUsageAccessSettings(),
+                    ),
+                    onOpenNotificationAccess: () => _openSettings(
+                      context,
+                      (bridge) => bridge.openNotificationAccessSettings(),
+                    ),
+                    onOpenOverlay: () => _openSettings(
+                      context,
+                      (bridge) => bridge.openOverlaySettings(),
+                    ),
+                    onOpenAccessibility: () => _openSettings(
+                      context,
+                      (bridge) => bridge.openAccessibilitySettings(),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    onChanged: controller.setQuery,
+                    decoration: const InputDecoration(
+                      hintText: 'Search installed apps',
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (controller.errorMessage != null)
+                    _ErrorBanner(message: controller.errorMessage!),
+                  if (controller.isLoading && controller.apps.isEmpty)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  if (!controller.isLoading && controller.filteredApps.isEmpty)
+                    const _EmptyApps(),
+                ]),
+              ),
             ),
-            const SizedBox(height: 16),
-            PermissionStatusCard(
-              status: controller.permissionStatus,
-              onOpenUsageAccess: () => _openSettings(
-                context,
-                (bridge) => bridge.openUsageAccessSettings(),
-              ),
-              onOpenNotificationAccess: () => _openSettings(
-                context,
-                (bridge) => bridge.openNotificationAccessSettings(),
-              ),
-              onOpenOverlay: () => _openSettings(
-                context,
-                (bridge) => bridge.openOverlaySettings(),
-              ),
-              onOpenAccessibility: () => _openSettings(
-                context,
-                (bridge) => bridge.openAccessibilitySettings(),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final app = controller.filteredApps[index];
+                  return AppLockTile(
+                    app: app,
+                    onLockChanged: (value) => controller.setLocked(app, value),
+                    onMaskChanged: (value) =>
+                        controller.setNotifMasked(app, value),
+                  );
+                }, childCount: controller.filteredApps.length),
               ),
             ),
-            const SizedBox(height: 20),
-            TextField(
-              onChanged: controller.setQuery,
-              decoration: const InputDecoration(
-                hintText: 'Search installed apps',
-                prefixIcon: Icon(Icons.search),
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (controller.errorMessage != null)
-              _ErrorBanner(message: controller.errorMessage!),
-            if (controller.isLoading && controller.apps.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (controller.filteredApps.isEmpty)
-              const _EmptyApps(),
-            ...controller.filteredApps.map(
-              (app) => AppLockTile(
-                app: app,
-                onLockChanged: (value) => controller.setLocked(app, value),
-                onMaskChanged: (value) => controller.setNotifMasked(app, value),
-              ),
+            SliverToBoxAdapter(
+              child: _DeveloperFooter(onTap: () => _openDeveloperLink(context)),
             ),
           ],
         ),
@@ -107,6 +124,16 @@ class DashboardScreen extends StatelessWidget {
           SnackBar(content: Text(error.message ?? 'Unable to open settings.')),
         );
       }
+    }
+  }
+
+  Future<void> _openDeveloperLink(BuildContext context) async {
+    final uri = Uri.parse('https://dev-zaryab.vercel.app/');
+    if (await launchUrl(uri, mode: LaunchMode.externalApplication)) return;
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to open developer website.')),
+      );
     }
   }
 }
@@ -136,6 +163,26 @@ class _EmptyApps extends StatelessWidget {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 40),
       child: Center(child: Text('No launchable apps found.')),
+    );
+  }
+}
+
+class _DeveloperFooter extends StatelessWidget {
+  const _DeveloperFooter({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 32, 16, 16),
+      child: Center(
+        child: TextButton.icon(
+          onPressed: onTap,
+          icon: const Icon(Icons.open_in_new, size: 16),
+          label: const Text('Developed by Zaryab Khan'),
+        ),
+      ),
     );
   }
 }

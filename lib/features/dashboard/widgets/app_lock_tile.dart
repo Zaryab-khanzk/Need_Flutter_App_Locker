@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../models/managed_app_model.dart';
 
-/// Renders the app identity and independent lock/masking switches.
+/// Renders the app identity and independent lock/masking controls.
 class AppLockTile extends StatelessWidget {
   /// Creates an app policy tile.
   const AppLockTile({
@@ -21,69 +21,47 @@ class AppLockTile extends StatelessWidget {
   /// Called when the launch lock switch changes.
   final ValueChanged<bool> onLockChanged;
 
-  /// Called when the notification mask switch changes.
+  /// Called when the notification mask control changes.
   final ValueChanged<bool> onMaskChanged;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(child: Icon(app.icon)),
-        title: Text(app.name),
-        subtitle: Text(app.packageName),
-        trailing: SizedBox(
-          width: 144,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _PolicySwitch(
-                icon: Icons.lock_outline,
-                label: 'Lock',
-                value: app.isLocked,
-                onChanged: onLockChanged,
+        title: Text(app.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+        subtitle: Text(
+          app.packageName,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              tooltip: app.isNotifMasked
+                  ? 'Disable notification masking'
+                  : 'Enable notification masking',
+              onPressed: () => onMaskChanged(!app.isNotifMasked),
+              icon: Icon(
+                app.isNotifMasked
+                    ? Icons.notifications_off
+                    : Icons.notifications_none,
               ),
-              _PolicySwitch(
-                icon: Icons.notifications_off_outlined,
-                label: 'Mask',
-                value: app.isNotifMasked,
-                onChanged: onMaskChanged,
-              ),
-            ],
-          ),
+              color: app.isNotifMasked
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
+            ),
+            Switch(
+              value: app.isLocked,
+              onChanged: onLockChanged,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ],
         ),
       ),
-    );
-  }
-}
-
-class _PolicySwitch extends StatelessWidget {
-  const _PolicySwitch({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Icon(icon, size: 16),
-        const SizedBox(width: 4),
-        Text(label, style: Theme.of(context).textTheme.labelSmall),
-        Switch(
-          value: value,
-          onChanged: onChanged,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-      ],
     );
   }
 }
