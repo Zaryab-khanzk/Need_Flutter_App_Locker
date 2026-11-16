@@ -34,13 +34,13 @@ behavior:
 
 Android requires the following access for the corresponding features:
 
-| Access | Used for |
-| --- | --- |
-| Usage access | Reading the foreground-app state reliably |
-| Accessibility service | Detecting protected app launches |
-| Display over other apps | Showing the lock screen above the protected app |
-| Notification access | Receiving notifications to be masked |
-| Post notifications | Posting sanitized replacement notifications on Android 13+ |
+| Access                  | Used for                                                   |
+| ----------------------- | ---------------------------------------------------------- |
+| Usage access            | Reading the foreground-app state reliably                  |
+| Accessibility service   | Detecting protected app launches                           |
+| Display over other apps | Showing the lock screen above the protected app            |
+| Notification access     | Receiving notifications to be masked                       |
+| Post notifications      | Posting sanitized replacement notifications on Android 13+ |
 
 On first launch, use the permission status cards in the dashboard to open each
 Android settings screen. Return to Need after changing a setting and refresh the
@@ -101,3 +101,12 @@ flutter test
 ```
 
 Need is not currently published to pub.dev.
+===========================================
+
+>>>>>>> 9d21e8463b6d0fcd33b424bf510a56bf347a1817
+>>>>>>>
+>>>>>>
+>>>>>
+>>>>
+>>>
+>>
